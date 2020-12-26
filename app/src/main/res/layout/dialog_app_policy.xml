@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:minWidth="1000dp"
+    android:minHeight="1000dp">
+
+    <ScrollView
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <TextView
+            android:id="@+id/textViewPolicy"
+            android:paddingTop="@dimen/_4sdp"
+            android:includeFontPadding="false"
+            android:paddingStart="@dimen/_8sdp"
+            android:paddingEnd="@dimen/_8sdp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </ScrollView>
+
+    <Button
+        android:id="@+id/buttonAccept"
+        android:layout_margin="@dimen/_4sdp"
+        android:backgroundTint="#3160EC"
+        android:text="@string/accept"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textSize="@dimen/_16ssp"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>

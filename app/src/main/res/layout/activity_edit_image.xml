@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical"
+    tools:context=".activities.EditImageActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolBarEditImage"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:background="#231500">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/imageButtonBackArrowEdit"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:background="@drawable/arrow_back"
+                android:contentDescription="@string/app_name" />
+
+            <TextView
+                android:id="@+id/toolBarName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:layout_weight="1"
+                android:text="@string/edit_image"
+                android:textColor="#ffffff"
+                android:textSize="@dimen/_18ssp" />
+
+            <ImageButton
+                android:id="@+id/imageButtonSave"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/save"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/imageButtonDelete"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/delete"
+                android:visibility="gone" />
+
+            <ImageButton
+                android:id="@+id/imageButtonUndo"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_8sdp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/undo"
+                android:visibility="gone" />
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ja.burhanrashid52.photoeditor.PhotoEditorView
+        android:id="@+id/photoEditorView"
+        android:layout_width="match_parent"
+        android:layout_marginStart="@dimen/_20sdp"
+        android:layout_marginEnd="@dimen/_20sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#000000"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/_8sdp">
+
+        <ImageButton
+            android:id="@+id/buttonEditImageAddText"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:background="@drawable/text"
+            android:contentDescription="@string/app_name" />
+
+        <ImageButton
+            android:id="@+id/buttonEditImageBrush"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:background="@drawable/brush"
+            android:contentDescription="@string/app_name" />
+
+        <ImageButton
+            android:id="@+id/buttonEditImageChooseBrushColor"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:background="@drawable/brush_color"
+            android:contentDescription="@string/app_name" />
+    </LinearLayout>
+</LinearLayout>

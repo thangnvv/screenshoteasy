@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">ScreenShot Easy</string>
+    <string name="running">Running</string>
+    <string name="setting">Setting</string>
+    <string name="general">GENERAL</string>
+    <string name="save_silently">Save silently</string>
+    <string name="save_silently_description">Screenshot will not be opened automatically after Capture</string>
+    <string name="auto_start">Auto Start</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="stop_service_description">Stop service when screen is turned off</string>
+    <string name="disable">Disable</string>
+    <string name="layout">LAYOUT</string>
+    <string name="theme">Theme</string>
+    <string name="light">Light</string>
+    <string name="storage">STORAGE</string>
+    <string name="save_location">File Location</string>
+    <string name="file_location">/sdcard/ScreenShotEasy</string>
+    <string name="filename">File Name</string>
+    <string name="done">Done</string>
+    <string name="add_text">Add Text</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="ok">Ok</string>
+    <string name="image_list">Image List</string>
+    <string name="menu_option">Menu Option</string>
+    <string name="edit_image">Edit Image</string>
+    <string name="rotate_horizontal">Rotate Horizontal</string>
+    <string name="rotate_vertical">Rotate Vertical</string>
+    <string name="automatically_start_on_boot">Automatically start on boot</string>
+
+    <string-array name="fileNames">
+        <item>yyyyMMdd_hhmmss</item>
+        <item>ddMMyyyy_hhmmss</item>
+        <item>yyMMdd_hhmmss</item>
+        <item>ddMMYY_hhmmss</item>
+        <item>hhMMss_yyyymmdd</item>
+        <item>hhMMss_ddmmyyyy</item>
+        <item>hhMMss_yymmdd</item>
+        <item>hhMMss_ddmmyy</item>
+    </string-array>
+
+    <string name="accept">Accept</string>
+    <string name="brush_size">5</string>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+
+    <style name="Theme.MaterialComponents.Light.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#1D47DF</item>
+        <item name="colorSurface">#ffffff</item>
+        <item name="colorControlNormal">#000000</item>
+        <item name="colorControlActivated">#FFFB24</item>
+    </style>
+
+</resources>
