@@ -8,22 +8,25 @@ import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Toast;
 
 import com.example.screenshoteasy.PolicyDialog;
-import com.example.screenshoteasy.broadcasts.BroadcastPhysicalCameraButtonClickListener;
+import com.example.screenshoteasy.broadcasts.PhysicalCameraButtonClickListenerBroadcast;
 import com.example.screenshoteasy.utils.ToolsStatusHelper;
 import com.example.screenshoteasy.R;
 import com.example.screenshoteasy.utils.Utilities;
 import com.example.screenshoteasy.databinding.ActivityMainBinding;
-import com.example.screenshoteasy.broadcasts.BroadCastStopService;
+import com.example.screenshoteasy.broadcasts.StopServiceBroadcast;
 import com.example.screenshoteasy.services.CreateNotificationService;
 import com.example.screenshoteasy.services.FloatingButtonService;
 import com.example.screenshoteasy.services.ShakeToTakeScreenShotService;
@@ -37,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean powerStatus, overlayStatus, shakeStatus, cameraStatus, notificationStatus;
     private SharedPreferences sharedPreferencesPower, sharedPreferencesOverlay, sharedPreferencesNotification, sharedPreferencesCamera, sharedPreferencesShake;
-    private BroadcastPhysicalCameraButtonClickListener broadcastPhysicalCameraButtonClickListener;
+    private PhysicalCameraButtonClickListenerBroadcast physicalCameraButtonClickListenerBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +50,18 @@ public class MainActivity extends AppCompatActivity {
         doInitialization();
         setMainStatus();
         onClickListener();
+        createNotificationChannel();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_LOW;
+            NotificationChannel channel = new NotificationChannel(Utilities.NOTIFICATION_CHANNEL_ID, Utilities.NOTIFICATION_NAME, importance);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     private void doInitialization() {
@@ -69,8 +84,8 @@ public class MainActivity extends AppCompatActivity {
                         if (cameraStatus) {
                             IntentFilter intentFilter = new IntentFilter();
                             intentFilter.addAction(Intent.ACTION_CAMERA_BUTTON);
-                            broadcastPhysicalCameraButtonClickListener = new BroadcastPhysicalCameraButtonClickListener();
-                            registerReceiver(broadcastPhysicalCameraButtonClickListener, intentFilter);
+                            physicalCameraButtonClickListenerBroadcast = new PhysicalCameraButtonClickListenerBroadcast();
+                            registerReceiver(physicalCameraButtonClickListenerBroadcast, intentFilter);
                         }
 
                         if (shakeStatus) {
@@ -98,11 +113,11 @@ public class MainActivity extends AppCompatActivity {
                         if (ToolsStatusHelper.getStatus(getSharedPreferences("sharedPreferencesStopService", MODE_PRIVATE))) {
                             IntentFilter intentFilter = new IntentFilter();
                             intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-                            BroadCastStopService broadCastStopService = new BroadCastStopService();
-                            registerReceiver(broadCastStopService, intentFilter);
+                            StopServiceBroadcast stopServiceBroadcast = new StopServiceBroadcast();
+                            registerReceiver(stopServiceBroadcast, intentFilter);
 
-                            broadCastStopService.setScreenOffListener(() -> {
-                                unregisterReceiver(broadCastStopService);
+                            stopServiceBroadcast.setScreenOffListener(() -> {
+                                unregisterReceiver(stopServiceBroadcast);
                                 activityMainBinding.imageButtonPower.setImageResource(R.drawable.stopped);
                             });
                         }
@@ -125,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
                     Intent myService = new Intent(MainActivity.this, CreateNotificationService.class);
                     stopService(myService);
                 }
-                if (cameraStatus && broadcastPhysicalCameraButtonClickListener != null) {
-                    unregisterReceiver(broadcastPhysicalCameraButtonClickListener);
+                if (cameraStatus && physicalCameraButtonClickListenerBroadcast != null) {
+                    unregisterReceiver(physicalCameraButtonClickListenerBroadcast);
                 }
             }
         });
@@ -141,8 +156,12 @@ public class MainActivity extends AppCompatActivity {
                 overlayStatus = true;
             } else {
                 if (powerStatus) {
-                    Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
-                    stopService(myService);
+                    if(checkToolsStatus(notificationStatus, shakeStatus, cameraStatus)){
+                        activityMainBinding.imageButtonPower.performClick();
+                    }else{
+                        Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
+                        stopService(myService);
+                    }
                 }
                 overlayStatus = false;
             }
@@ -158,12 +177,16 @@ public class MainActivity extends AppCompatActivity {
 
             ToolsStatusHelper.saveStatus(notificationStatus, sharedPreferencesNotification);
             if (powerStatus) {
-                if (!shakeStatus) {
-                    stopService(new Intent(MainActivity.this, CreateNotificationService.class));
-                    startService(new Intent(MainActivity.this, CreateNotificationService.class));
-                } else {
-                    stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                    startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                if(checkToolsStatus(overlayStatus, shakeStatus, cameraStatus)){
+                    activityMainBinding.imageButtonPower.performClick();
+                }else{
+                    if (!shakeStatus) {
+                        stopService(new Intent(MainActivity.this, CreateNotificationService.class));
+                        startService(new Intent(MainActivity.this, CreateNotificationService.class));
+                    } else {
+                        stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                        startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                    }
                 }
             }
         });
@@ -180,9 +203,13 @@ public class MainActivity extends AppCompatActivity {
                 shakeStatus = true;
             } else {
                 if (powerStatus) {
-                    stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                    stopService(new Intent(MainActivity.this, CreateNotificationService.class));
-                    startService(new Intent(MainActivity.this, CreateNotificationService.class));
+                    if(checkToolsStatus(overlayStatus, notificationStatus, cameraStatus)){
+                        activityMainBinding.imageButtonPower.performClick();
+                    }else{
+                        stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                        stopService(new Intent(MainActivity.this, CreateNotificationService.class));
+                        startService(new Intent(MainActivity.this, CreateNotificationService.class));
+                    }
                 }
                 shakeStatus = false;
             }
@@ -193,6 +220,11 @@ public class MainActivity extends AppCompatActivity {
             if (isChecked) {
                 cameraStatus = true;
             } else {
+                if(powerStatus){
+                    if(checkToolsStatus(overlayStatus, notificationStatus, shakeStatus)){
+                        activityMainBinding.imageButtonPower.performClick();
+                    }
+                }
                 cameraStatus = false;
             }
         });
@@ -209,6 +241,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         activityMainBinding.imageButtonSetting.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SettingActivity.class)));
+    }
+
+    private boolean checkToolsStatus(boolean stt1, boolean stt2, boolean stt3){
+        return !stt1 && !stt2 && !stt3;
     }
 
     private boolean isStoragePermissionGranted() {
@@ -287,7 +323,6 @@ public class MainActivity extends AppCompatActivity {
         saveMainStatus();
         Utilities.isAppOnForeGround = false;
     }
-
 
     private void setMainStatus() {
         powerStatus = ToolsStatusHelper.getStatus(sharedPreferencesPower);

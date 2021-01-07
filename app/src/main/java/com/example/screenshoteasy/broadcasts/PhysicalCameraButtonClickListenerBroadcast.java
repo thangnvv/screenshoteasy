@@ -7,7 +7,7 @@ import android.content.Intent;
 import com.example.screenshoteasy.activities.TakingScreenShotActivity;
 import com.example.screenshoteasy.utils.Utilities;
 
-public class BroadcastPhysicalCameraButtonClickListener extends BroadcastReceiver {
+public class PhysicalCameraButtonClickListenerBroadcast extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

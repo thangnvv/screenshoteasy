@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" />
 
@@ -42,15 +43,23 @@
         </activity>
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity" />
 
-        <receiver android:name="com.example.screenshoteasy.broadcasts.BroadCastStopService" android:exported="true">
+        <receiver android:name="com.example.screenshoteasy.broadcasts.StopServiceBroadcast" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SCREEN_OFF"/>
             </intent-filter>
         </receiver>
 
-        <receiver android:name="com.example.screenshoteasy.broadcasts.BroadcastPhysicalCameraButtonClickListener" android:exported="true">
+        <receiver android:name="com.example.screenshoteasy.broadcasts.PhysicalCameraButtonClickListenerBroadcast" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.CAMERA_BUTTON"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="com.example.screenshoteasy.broadcasts.StartOnBootBroadcast" android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
 
@@ -68,6 +77,5 @@
         <service android:name=".services.CreateNotificationService"
             android:enabled="true"/>
     </application>
-
 
 </manifest>

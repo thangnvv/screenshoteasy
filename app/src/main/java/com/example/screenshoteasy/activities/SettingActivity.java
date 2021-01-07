@@ -1,14 +1,19 @@
 package com.example.screenshoteasy.activities;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.screenshoteasy.broadcasts.StartOnBootBroadcast;
 import com.example.screenshoteasy.utils.ToolsStatusHelper;
 import com.example.screenshoteasy.R;
 import com.example.screenshoteasy.utils.Utilities;
@@ -22,12 +27,14 @@ public class SettingActivity extends AppCompatActivity {
     private boolean isStopService;
     private int fileNamePosition;
     private String[] fileNameArray;
+    private final StartOnBootBroadcast startOnBootBroadcast = new StartOnBootBroadcast();
 
-    ImageButton imgButtonBack;
-    LinearLayout layoutStopService, layoutSaveSilently, layoutAutoStart, layoutFileName;
-    MaterialCheckBox checkBoxAutoStart, checkBoxSaveSilently, checkBoxStopService;
-    TextView txtViewFileName;
+    private ImageButton imgButtonBack;
+    private LinearLayout layoutStopService, layoutSaveSilently, layoutAutoStart, layoutFileName;
+    private MaterialCheckBox checkBoxAutoStart, checkBoxSaveSilently, checkBoxStopService;
+    private TextView txtViewFileName;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +57,7 @@ public class SettingActivity extends AppCompatActivity {
         checkBoxAutoStart.setChecked(isAutoStart);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void setOnClick() {
         imgButtonBack.setOnClickListener(v -> {
             Intent intentGoMain = new Intent(SettingActivity.this, MainActivity.class);
@@ -78,8 +86,18 @@ public class SettingActivity extends AppCompatActivity {
         layoutAutoStart.setOnClickListener(v -> {
             if(isAutoStart){
                 isAutoStart = false;
+                try{
+                    unregisterReceiver(startOnBootBroadcast);
+                    Log.d("DDD", "UnRegister Broadcast succeed");
+                }catch (RuntimeException e){
+                    Log.d("DDD", "UnRegister Broadcast failed" + e.getMessage());
+                }
             }else{
                 isAutoStart = true;
+                IntentFilter filterBootCompleted = new IntentFilter();
+                filterBootCompleted.addAction(Intent.ACTION_BOOT_COMPLETED);
+                registerReceiver(startOnBootBroadcast, filterBootCompleted);
+                Log.d("DDD", "On Register Broadcast" );
             }
             checkBoxAutoStart.setChecked(isAutoStart);
         });
@@ -119,18 +137,13 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
+        Utilities.isAppOnForeGround = false;
         ToolsStatusHelper.saveStatus(isSaveSilently, sharedPreferencesSaveSilently);
         ToolsStatusHelper.saveStatus(isAutoStart, sharedPreferencesAutoStart);
         ToolsStatusHelper.saveStatus(isStopService, sharedPreferencesStopService);
         ToolsStatusHelper.saveFileName(fileNamePosition, sharedPreferencesFileName);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Utilities.isAppOnForeGround = false;
     }
 
     @Override

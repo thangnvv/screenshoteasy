@@ -1,11 +1,14 @@
 package com.example.screenshoteasy.services;
 
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
+import android.service.notification.StatusBarNotification;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +21,7 @@ import androidx.annotation.RequiresApi;
 
 import com.example.screenshoteasy.R;
 import com.example.screenshoteasy.activities.TakingScreenShotActivity;
+import com.example.screenshoteasy.utils.ToolsStatusHelper;
 import com.example.screenshoteasy.utils.Utilities;
 
 public class FloatingButtonService extends Service {
@@ -33,7 +37,16 @@ public class FloatingButtonService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        gestureDetector = new GestureDetector(this, new SingleTapConfirm());
+        if(ToolsStatusHelper.getStatus(getSharedPreferences("sharedPreferencesAutoStart", MODE_PRIVATE))){
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+            if(notifications.length > 0){
+                Notification notification = notifications[0].getNotification();
+                notificationManager.cancelAll();
+                startForeground(1, notification);
+            }
+            gestureDetector = new GestureDetector(this, new SingleTapConfirm());
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")

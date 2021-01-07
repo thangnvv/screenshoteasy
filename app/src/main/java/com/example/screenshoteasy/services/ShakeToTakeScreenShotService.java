@@ -67,32 +67,14 @@ public class ShakeToTakeScreenShotService extends Service {
         stackBuilder.addNextIntentWithParentStack(intent);
         PendingIntent resultPendingIntent =
                 stackBuilder.getPendingIntent(0, PendingIntent.FLAG_CANCEL_CURRENT);
-        String CHANNEL_ID = "ScreenShot Easy";
-        String CHANNEL_NAME = "Notification Channel";
-        String CHANNEL_DESCRIPTION =  "Notification to take Screen Shot";
-        createNotificationChannel(CHANNEL_ID, CHANNEL_NAME, CHANNEL_DESCRIPTION);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Utilities.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_camera)
                 .setContentTitle("ScreenShot Easy")
                 .setContentText(contentText)
                 .setAutoCancel(false)
                 .setContentIntent(resultPendingIntent);
 
-        startForeground(2, builder.build());
-    }
-
-    private void createNotificationChannel(String channel_id, String channel_name, String channel_description) {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_LOW;
-            NotificationChannel channel = new NotificationChannel(channel_id, channel_name, importance);
-            channel.setDescription(channel_description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
+        startForeground(1, builder.build());
     }
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {

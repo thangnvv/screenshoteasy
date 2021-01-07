@@ -11,7 +11,7 @@ import com.example.screenshoteasy.utils.ToolsStatusHelper;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class BroadCastStopService extends BroadcastReceiver {
+public class StopServiceBroadcast extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
