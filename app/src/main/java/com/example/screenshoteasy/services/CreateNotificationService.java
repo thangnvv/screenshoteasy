@@ -1,8 +1,8 @@
 package com.example.screenshoteasy.services;
 
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
@@ -10,6 +10,7 @@ import android.os.IBinder;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.screenshoteasy.ScreenshotApplication;
 import com.example.screenshoteasy.activities.MainActivity;
 import com.example.screenshoteasy.utils.ToolsStatusHelper;
 import com.example.screenshoteasy.R;
@@ -26,30 +27,32 @@ public class CreateNotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        SharedPreferences sharedPreferences =  getSharedPreferences("NotificationStatus", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("NotificationStatus", MODE_PRIVATE);
         boolean notificationStatus = ToolsStatusHelper.getStatus(sharedPreferences);
-        if(notificationStatus){
+        if (notificationStatus) {
             Intent intentTap = new Intent(CreateNotificationService.this, TakingScreenShotActivity.class);
+            intentTap.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if(ScreenshotApplication.isInBackground){
+                intentTap.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            }
             bindForegroundNotification("Tap to screen shot", intentTap);
-        }else{
+        } else {
             Intent intentRunning = new Intent(CreateNotificationService.this, MainActivity.class);
+            intentRunning.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             bindForegroundNotification("Running", intentRunning);
         }
         return START_STICKY;
     }
 
-    private void bindForegroundNotification(String contentText, Intent intent){
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addNextIntentWithParentStack(intent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_CANCEL_CURRENT);
+    private void bindForegroundNotification(String contentText, Intent intent) {
+        PendingIntent pendingIntent = PendingIntent.getActivity(CreateNotificationService.this, 1, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Utilities.NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_camera)
                 .setContentTitle("ScreenShot Easy")
                 .setContentText(contentText)
                 .setAutoCancel(false)
-                .setContentIntent(resultPendingIntent);
+                .setContentIntent(pendingIntent);
 
         startForeground(1, builder.build());
     }
@@ -58,5 +61,7 @@ public class CreateNotificationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopForeground(true);
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.cancelAll();
     }
 }

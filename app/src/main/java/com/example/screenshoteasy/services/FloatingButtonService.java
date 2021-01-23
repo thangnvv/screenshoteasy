@@ -20,15 +20,15 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.example.screenshoteasy.R;
+import com.example.screenshoteasy.ScreenshotApplication;
 import com.example.screenshoteasy.activities.TakingScreenShotActivity;
-import com.example.screenshoteasy.utils.ToolsStatusHelper;
-import com.example.screenshoteasy.utils.Utilities;
 
 public class FloatingButtonService extends Service {
     private GestureDetector gestureDetector;
     private WindowManager windowManager;
     private ImageView takeScreenShot;
     private boolean activity_background;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -37,15 +37,11 @@ public class FloatingButtonService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        if(ToolsStatusHelper.getStatus(getSharedPreferences("sharedPreferencesAutoStart", MODE_PRIVATE))){
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
-            if(notifications.length > 0){
-                Notification notification = notifications[0].getNotification();
-                notificationManager.cancelAll();
-                startForeground(1, notification);
-            }
-            gestureDetector = new GestureDetector(this, new SingleTapConfirm());
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+        if (notifications.length > 0) {
+            Notification notification = notifications[0].getNotification();
+            startForeground(1, notification);
         }
     }
 
@@ -55,6 +51,7 @@ public class FloatingButtonService extends Service {
         if (intent != null) {
             activity_background = intent.getBooleanExtra("activity_background", false);
         }
+        gestureDetector = new GestureDetector(this, new SingleTapConfirm());
         int LAYOUT_FLAG;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -82,7 +79,7 @@ public class FloatingButtonService extends Service {
 
             takeScreenShot.setOnTouchListener(new View.OnTouchListener() {
 
-                private WindowManager.LayoutParams paramsF = params;
+                private final WindowManager.LayoutParams paramsF = params;
                 private int initialX;
                 private int initialY;
                 private float initialTouchX;
@@ -91,13 +88,13 @@ public class FloatingButtonService extends Service {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    Intent intent = new Intent(FloatingButtonService.this, TakingScreenShotActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    if(!Utilities.isAppOnForeGround){
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    Intent intentTakeScreenShot = new Intent(FloatingButtonService.this, TakingScreenShotActivity.class);
+                    intentTakeScreenShot.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    if (ScreenshotApplication.isInBackground) {
+                        intentTakeScreenShot.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     }
                     if (gestureDetector.onTouchEvent(event)) {
-                        startActivity(intent);
+                        startActivity(intentTakeScreenShot);
                         stopSelf();
                         return true;
                     } else {
@@ -114,7 +111,7 @@ public class FloatingButtonService extends Service {
                                     float yDiff = event.getRawY() - initialTouchY;
 
                                     if ((Math.abs(xDiff) < 5) && (Math.abs(yDiff) < 5)) {
-                                        startActivity(intent);
+                                        startActivity(intentTakeScreenShot);
                                         stopSelf();
                                     }
                                 }
@@ -141,6 +138,7 @@ public class FloatingButtonService extends Service {
     public void onDestroy() {
         super.onDestroy();
         windowManager.removeView(takeScreenShot);
+        stopForeground(false);
     }
 
     private static class SingleTapConfirm extends GestureDetector.SimpleOnGestureListener {

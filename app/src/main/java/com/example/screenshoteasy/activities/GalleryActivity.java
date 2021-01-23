@@ -15,13 +15,10 @@ import android.widget.Toast;
 
 import com.example.screenshoteasy.adapters.PictureAdapter;
 import com.example.screenshoteasy.R;
-import com.example.screenshoteasy.utils.Utilities;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -147,15 +144,4 @@ public class GalleryActivity extends AppCompatActivity {
             finish();
         }
 
-        @Override
-        protected void onPause () {
-            super.onPause();
-            Utilities.isAppOnForeGround = false;
-        }
-
-        @Override
-        protected void onResume () {
-            super.onResume();
-            Utilities.isAppOnForeGround = true;
-        }
     }

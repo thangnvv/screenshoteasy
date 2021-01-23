@@ -61,4 +61,8 @@ dependencies {
 
     //Auto center image
     implementation 'com.github.adityagohad:HorizontalPicker:1.0.1'
+
+    // lifecycle and annotation
+    implementation "android.arch.lifecycle:extensions:1.1.1"
+    annotationProcessor "android.arch.lifecycle:compiler:1.1.1"
 }

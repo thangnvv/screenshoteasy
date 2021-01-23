@@ -139,16 +139,9 @@ public class SettingActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Utilities.isAppOnForeGround = false;
         ToolsStatusHelper.saveStatus(isSaveSilently, sharedPreferencesSaveSilently);
         ToolsStatusHelper.saveStatus(isAutoStart, sharedPreferencesAutoStart);
         ToolsStatusHelper.saveStatus(isStopService, sharedPreferencesStopService);
         ToolsStatusHelper.saveFileName(fileNamePosition, sharedPreferencesFileName);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Utilities.isAppOnForeGround = true;
     }
 }

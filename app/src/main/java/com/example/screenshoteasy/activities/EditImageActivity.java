@@ -200,16 +200,4 @@ public class EditImageActivity extends AppCompatActivity {
         imgButtonSave.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Utilities.isAppOnForeGround = false;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Utilities.isAppOnForeGround = true;
-    }
-
 }

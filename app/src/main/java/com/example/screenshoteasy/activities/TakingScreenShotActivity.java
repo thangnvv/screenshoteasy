@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -21,10 +22,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Display;
 import android.view.OrientationEventListener;
 import android.widget.Toast;
 
+import com.example.screenshoteasy.ScreenshotApplication;
 import com.example.screenshoteasy.utils.ToolsStatusHelper;
 import com.example.screenshoteasy.R;
 import com.example.screenshoteasy.utils.SaveImageHelper;
@@ -35,7 +38,7 @@ import java.nio.ByteBuffer;
 public class TakingScreenShotActivity extends Activity {
 
     private static final int REQUEST_CODE = 100;
-    private static final String SCREENCAP_NAME = "screencap";
+    private static final String SCREENSHOT_NAME = "Screenshot Application";
     private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
 
     private TakingScreenShotActivity.OrientationChangeCallback mOrientationChangeCallback;
@@ -56,18 +59,21 @@ public class TakingScreenShotActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_taking_screenshot);
         mProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        if(ToolsStatusHelper.getStatus(getSharedPreferences("OverlayStatus", MODE_PRIVATE))){
-            stopService(new Intent(TakingScreenShotActivity.this, FloatingButtonService.class));
-        }
+        temporaryHideFloatingButton();
         new Handler(Looper.getMainLooper()).postDelayed(this::startProjection, 1000);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void temporaryHideFloatingButton() {
+        if(ToolsStatusHelper.getStatus(getSharedPreferences("OverlayStatus", MODE_PRIVATE))){
+            stopService(new Intent(this, FloatingButtonService.class));
+        }
+    }
+
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image image = null;
-            Bitmap bitmap = null;
+            Bitmap bitmap;
             try {
                 if (!wasCapture) {
                     wasCapture = true;
@@ -84,11 +90,11 @@ public class TakingScreenShotActivity extends Activity {
                         bitmap.copyPixelsFromBuffer(buffer);
                         Rect rect = image.getCropRect();
                         Bitmap croppedBitmap =  Bitmap.createBitmap(bitmap,rect.left,rect.top,rect.width(),rect.height());
-                        SaveImageHelper.saveImageToSdCard(croppedBitmap, getApplicationContext());
+                        SaveImageHelper.saveImageToSdCard(croppedBitmap, TakingScreenShotActivity.this);
                         restartService();
                         // Hide those if mode save silently is on
                         if(!ToolsStatusHelper.getStatus(getSharedPreferences("sharedPreferencesSaveSilently", MODE_PRIVATE))){
-                            Intent intentSendImageToGallery = new Intent(getApplicationContext(), GalleryActivity.class);
+                            Intent intentSendImageToGallery = new Intent(TakingScreenShotActivity.this, GalleryActivity.class);
                             intentSendImageToGallery.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intentSendImageToGallery);
                         }else{
@@ -173,7 +179,7 @@ public class TakingScreenShotActivity extends Activity {
 
         // start capture reader
         mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 2);
-        mVirtualDisplay = sMediaProjection.createVirtualDisplay(SCREENCAP_NAME, mWidth, mHeight,
+        mVirtualDisplay = sMediaProjection.createVirtualDisplay(SCREENSHOT_NAME, mWidth, mHeight,
                 mDensity, VIRTUAL_DISPLAY_FLAGS, mImageReader.getSurface(), null, mHandler);
         mImageReader.setOnImageAvailableListener(new TakingScreenShotActivity.ImageAvailableListener(), mHandler);
     }

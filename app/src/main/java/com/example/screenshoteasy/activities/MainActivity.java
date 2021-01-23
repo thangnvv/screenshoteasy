@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
                     if (!cameraStatus && !notificationStatus && !overlayStatus && !shakeStatus) {
                         Toast.makeText(MainActivity.this, "Please select at least one tool!", Toast.LENGTH_LONG).show();
                     } else {
+                        startService(new Intent(MainActivity.this, CreateNotificationService.class));
+
                         if (cameraStatus) {
                             IntentFilter intentFilter = new IntentFilter();
                             intentFilter.addAction(Intent.ACTION_CAMERA_BUTTON);
@@ -90,8 +92,6 @@ public class MainActivity extends AppCompatActivity {
 
                         if (shakeStatus) {
                             startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                        } else {
-                            startService(new Intent(MainActivity.this, CreateNotificationService.class));
                         }
 
                         if (overlayStatus) {
@@ -130,15 +130,14 @@ public class MainActivity extends AppCompatActivity {
                 activityMainBinding.imageButtonPower.setImageResource(R.drawable.stopped);
                 powerStatus = false;
 
+                stopService(new Intent(MainActivity.this, CreateNotificationService.class));
+
                 if (overlayStatus) {
                     Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
                     stopService(myService);
                 }
                 if (shakeStatus) {
                     stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                } else {
-                    Intent myService = new Intent(MainActivity.this, CreateNotificationService.class);
-                    stopService(myService);
                 }
                 if (cameraStatus && physicalCameraButtonClickListenerBroadcast != null) {
                     unregisterReceiver(physicalCameraButtonClickListenerBroadcast);
@@ -150,15 +149,27 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.switchOverLay.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 if (powerStatus) {
-                    Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
-                    startService(myService);
+                    if (!Settings.canDrawOverlays(this)) {
+                        new MaterialAlertDialogBuilder(MainActivity.this)
+                                .setPositiveButton(getResources().getString(R.string.ok), (dialog, which) -> {
+                                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                            Uri.parse("package:" + getPackageName()));
+                                    startActivityForResult(intent, REQUEST_CODE_OVERLAY);
+                                })
+                                .setTitle("No OVERLAY permission")
+                                .setMessage("Go to setting to open permission for SCREENSHOT EASY?")
+                                .show();
+                    }else{
+                        Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
+                        startService(myService);
+                    }
                 }
                 overlayStatus = true;
             } else {
                 if (powerStatus) {
-                    if(checkToolsStatus(notificationStatus, shakeStatus, cameraStatus)){
+                    if (checkToolsStatus(notificationStatus, shakeStatus, cameraStatus)) {
                         activityMainBinding.imageButtonPower.performClick();
-                    }else{
+                    } else {
                         Intent myService = new Intent(MainActivity.this, FloatingButtonService.class);
                         stopService(myService);
                     }
@@ -169,50 +180,45 @@ public class MainActivity extends AppCompatActivity {
 
         //Switch Notification
         activityMainBinding.switchNotification.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (notificationStatus) {
-                notificationStatus = false;
-            } else {
+
+            if (isChecked) {
                 notificationStatus = true;
+            } else {
+                notificationStatus = false;
             }
 
-            ToolsStatusHelper.saveStatus(notificationStatus, sharedPreferencesNotification);
             if (powerStatus) {
-                if(checkToolsStatus(overlayStatus, shakeStatus, cameraStatus)){
+                if (checkToolsStatus(overlayStatus, shakeStatus, cameraStatus)) {
                     activityMainBinding.imageButtonPower.performClick();
-                }else{
-                    if (!shakeStatus) {
-                        stopService(new Intent(MainActivity.this, CreateNotificationService.class));
-                        startService(new Intent(MainActivity.this, CreateNotificationService.class));
-                    } else {
-                        stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                        startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                    }
+                } else {
+                    ToolsStatusHelper.saveStatus(notificationStatus, sharedPreferencesNotification);
+                    stopService(new Intent(MainActivity.this, CreateNotificationService.class));
+                    startService(new Intent(MainActivity.this, CreateNotificationService.class));
                 }
             }
+
         });
 
         //Switch Shake
         activityMainBinding.switchShake.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                if (powerStatus) {
-                    if(notificationStatus || overlayStatus || cameraStatus){
-                        stopService(new Intent(MainActivity.this, CreateNotificationService.class));
-                    }
-                    startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                }
                 shakeStatus = true;
             } else {
-                if (powerStatus) {
-                    if(checkToolsStatus(overlayStatus, notificationStatus, cameraStatus)){
-                        activityMainBinding.imageButtonPower.performClick();
-                    }else{
-                        stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
-                        stopService(new Intent(MainActivity.this, CreateNotificationService.class));
-                        startService(new Intent(MainActivity.this, CreateNotificationService.class));
-                    }
-                }
                 shakeStatus = false;
             }
+
+            if (powerStatus) {
+                if (shakeStatus) {
+                    startService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                } else {
+                    if (checkToolsStatus(notificationStatus, overlayStatus, cameraStatus)) {
+                        activityMainBinding.imageButtonPower.performClick();
+                    } else {
+                        stopService(new Intent(MainActivity.this, ShakeToTakeScreenShotService.class));
+                    }
+                }
+            }
+
         });
 
         //Switch Camera
@@ -220,8 +226,8 @@ public class MainActivity extends AppCompatActivity {
             if (isChecked) {
                 cameraStatus = true;
             } else {
-                if(powerStatus){
-                    if(checkToolsStatus(overlayStatus, notificationStatus, shakeStatus)){
+                if (powerStatus) {
+                    if (checkToolsStatus(overlayStatus, notificationStatus, shakeStatus)) {
                         activityMainBinding.imageButtonPower.performClick();
                     }
                 }
@@ -243,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.imageButtonSetting.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SettingActivity.class)));
     }
 
-    private boolean checkToolsStatus(boolean stt1, boolean stt2, boolean stt3){
+    private boolean checkToolsStatus(boolean stt1, boolean stt2, boolean stt3) {
         return !stt1 && !stt2 && !stt3;
     }
 
@@ -311,17 +317,11 @@ public class MainActivity extends AppCompatActivity {
         saveMainStatus();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Utilities.isAppOnForeGround = true;
-    }
 
     @Override
     protected void onPause() {
         super.onPause();
         saveMainStatus();
-        Utilities.isAppOnForeGround = false;
     }
 
     private void setMainStatus() {
